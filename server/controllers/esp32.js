@@ -6,10 +6,10 @@ const reset = async (req, res) => {
 
 	if (docs.length == 0) {
 		const newEsp32 = new esp32({
-			tod: "00:00:00",
-			sunrise: "08:00:00",
-			sunset: "20:00:00",
-			duration: 30,
+			tod: 0,
+			sunrise: 28800,
+			sunset: 72000,
+			duration: 60,
 			rValue: 0,
 			gValue: 0,
 			bValue: 0,
@@ -31,10 +31,11 @@ const config = async (req, res) => {
 	//doc["tod"] = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
 
 	//today.setHours(today.getHours());
-    var hours =  utc.getHours() < 10 ? "0" +  utc.getHours() :  utc.getHours();
-    var mins =  utc.getMinutes() < 10 ? "0" +  utc.getMinutes() :  utc.getMinutes();
-    var secs =  utc.getSeconds() < 10 ? "0" +  utc.getSeconds() :  utc.getSeconds();
-	doc["tod"] =hours + ":" + mins + ":" + secs;
+	let hours = utc.getHours() < 10 ? "0" + utc.getHours() : utc.getHours();
+	let mins = utc.getMinutes() < 10 ? "0" + utc.getMinutes() : utc.getMinutes();
+	let secs = utc.getSeconds() < 10 ? "0" + utc.getSeconds() : utc.getSeconds();
+	console.log(hours + ":" + mins + ":" + secs);
+	doc["tod"] = parseInt(hours) * 60 * 60 + parseInt(mins) * 60 + parseInt(secs);
 
 	return res.status(201).json(doc);
 };
@@ -88,14 +89,23 @@ const saveCustom = async (req, res) => {
 
 	if (!req.body.sunrise || !req.body.sunset)
 		return res.status(400).json({ error: "missing sunrise / sunset" });
+	if (req.body.runrise.length() != 5 || req.body.sunset.length() != 5)
+		return res.status(400).json({ error: "invalid length" });
 
 	const docs = await esp32.find();
 	console.log(docs);
 	const doc = docs[0];
 	console.log(doc);
 
-	doc["sunrise"] = req.body.sunrise + ":00";
-	doc["sunset"] = req.body.sunset+ ":00";
+	//gets the seconds value of date in format hh:mm
+	let sunriseValue =
+		(req.body.sunrise.charAt(0) - "0" * 10 + req.body.sunrise.charAt(1) - "0") * 60 * 60 +
+		(req.body.sunrise.charAt(3) - "0" * 10 + req.body.sunrise.charAt(4) - "0") * 60;
+	let sunsetValue =
+		(req.body.sunset.charAt(0) - "0" * 10 + req.body.sunset.charAt(1) - "0") * 60 * 60 +
+		(req.body.sunset.charAt(3) - "0" * 10 + req.body.sunset.charAt(4) - "0") * 60;
+	doc["sunrise"] = sunriseValue;
+	doc["sunset"] = sunsetValue;
 
 	await doc.save();
 
