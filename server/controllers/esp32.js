@@ -89,7 +89,7 @@ const saveCustom = async (req, res) => {
 
 	if (!req.body.sunrise || !req.body.sunset)
 		return res.status(400).json({ error: "missing sunrise / sunset" });
-	if (req.body.runrise.length != 5 || req.body.sunset.length != 5)
+	if (req.body.sunrise.length != 5 || req.body.sunset.length != 5)
 		return res.status(400).json({ error: "invalid length" });
 
 	const docs = await esp32.find();
