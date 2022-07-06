@@ -35,6 +35,16 @@ const config = async (req, res) => {
 	let mins = utc.getMinutes() < 10 ? "0" + utc.getMinutes() : utc.getMinutes();
 	let secs = utc.getSeconds() < 10 ? "0" + utc.getSeconds() : utc.getSeconds();
 	console.log(hours + ":" + mins + ":" + secs);
+
+	hours = parseInt(hours);
+	mins = parseInt(mins);
+	secs = parseInt(secs);
+
+	if (hours < 0 || hours > 24 || mins < 0 || mins > 60 || secs < 0 || secs > 60) {
+		console.log("Invalid Input");
+		return res.status(400).json({ error: "invalid time input" });
+	}
+
 	doc["tod"] = parseInt(hours) * 60 * 60 + parseInt(mins) * 60 + parseInt(secs);
 
 	return res.status(201).json(doc);
@@ -71,8 +81,15 @@ const saveDuration = async (req, res) => {
 	console.log("incoming data");
 	console.log(JSON.stringify(req.body));
 
+	//input validation
 	if (!req.body.duration) return res.status(400).json({ error: "missing duration" });
 
+	var re = new RegExp("^[0-9]{1,3}$");
+	if (!re.test(req.body.duration)) {
+		return res.status(400).json({ error: "invalid input" });
+	}
+
+	//saving to database
 	const docs = await esp32.find();
 	const doc = docs[0];
 
@@ -92,18 +109,54 @@ const saveCustom = async (req, res) => {
 	if (req.body.sunrise.length != 5 || req.body.sunset.length != 5)
 		return res.status(400).json({ error: "invalid length" });
 
+	//input validation
+	let re = new RegExp("^[0-9]{2}[:]{1}[0-9]{2}$");
+	if (re.test(req.body.sunrise)) {
+		if (
+			req.body.sunrise.charAt(0) - "0" > 2 ||
+			(req.body.sunrise.charAt(1) > 4 && req.body.sunrise.charAt(0) > 1)
+		) {
+			return res.status(400).json({ error: "invalid input" });
+		}
+	} else {
+		valid = false;
+		return res.status(400).json({ error: "invalid input" });
+	}
+
+	if (re.test(req.body.sunset)) {
+		if (
+			req.body.sunset.charAt(0) - "0" > 2 ||
+			(req.body.sunset.charAt(1) > 4 && req.body.sunset.charAt(0) > 1)
+		) {
+			return res.status(400).json({ error: "invalid input" });
+		}
+	} else {
+		return res.status(400).json({ error: "invalid input" });
+	}
+
+	//saving to database
 	const docs = await esp32.find();
 	console.log(docs);
 	const doc = docs[0];
 	console.log(doc);
 
+	let sunriseHours = req.body.sunrise.charAt(0) - "0" * 10 + req.body.sunrise.charAt(1) - "0";
+	let sunriseMins = req.body.sunrise.charAt(3) - "0" * 10 + req.body.sunrise.charAt(4) - "0";
+	let sunsetHours = req.body.sunset.charAt(0) - "0" * 10 + req.body.sunset.charAt(1) - "0";
+	let sunsetMins = req.body.sunset.charAt(3) - "0" * 10 + req.body.sunset.charAt(4) - "0";
+
+	if (sunriseHours < 0 || sunriseHours > 24 || sunriseMins < 0 || sunriseMins > 60) {
+		console.log("Invalid Input");
+		return res.status(400).json({ error: "invalid input" });
+	}
+	if (sunsetHours < 0 || sunsetHours > 24 || sunsetMins < 0 || sunsetMins > 60) {
+		console.log("Invalid Input");
+		return res.status(400).json({ error: "invalid input" });
+	}
+
 	//gets the seconds value of date in format hh:mm
-	let sunriseValue =
-		(req.body.sunrise.charAt(0) - "0" * 10 + req.body.sunrise.charAt(1) - "0") * 60 * 60 +
-		(req.body.sunrise.charAt(3) - "0" * 10 + req.body.sunrise.charAt(4) - "0") * 60;
-	let sunsetValue =
-		(req.body.sunset.charAt(0) - "0" * 10 + req.body.sunset.charAt(1) - "0") * 60 * 60 +
-		(req.body.sunset.charAt(3) - "0" * 10 + req.body.sunset.charAt(4) - "0") * 60;
+	let sunriseValue = sunriseHours * 60 * 60 + sunriseMins * 60;
+	let sunsetValue = sunsetHours * 60 * 60 + sunsetMins * 60;
 	doc["sunrise"] = sunriseValue;
 	doc["sunset"] = sunsetValue;
 

@@ -34,13 +34,15 @@
         <!------------- custom start/end times  ------------->
         <p>Set time with format:    hh:mm</p>
 
+
         <label for="javascript">Custom start lighting up</label>
-        <input type="text" id="customStart"  placeHolder = "hh:mm" class="textInput" />
+        <input type="text" id="customStart"   title="hh:mm" placeHolder = "hh:mm" class="textInput" required/>
 
         <label for="javascript">Custom start dimming down</label>
-        <input type="text" id="customEnd"  placeHolder = "hh:mm" class="textInput" />
+        <input type="text" id="customEnd"  placeHolder = "hh:mm"  title="hh:mm" class="textInput" required />
 
         <button onClick="saveCustom()">Save</button><br>
+
 
         <!------------- duration ------------->
         <label for="javascript">Change Duration in minutes</label>
@@ -107,9 +109,9 @@
 
       function setSliderPWM(number) {
         //slider number corresponds to the slider colors - r,g, and b
-        var sliderNumber = number;
+        let sliderNumber = number;
         console.log(sliderNumber);
-        var sliderValue = config[sliderNumber + "Value"];
+        let sliderValue = config[sliderNumber + "Value"];
         console.log(sliderValue);
 
         //gets slider and sets its value to config value
@@ -121,7 +123,7 @@
       }
 
       function setDuration() {
-        var durationValue = config["duration"];
+        let durationValue = config["duration"];
         console.log(durationValue);
 
         //gets slider and sets its value to config value
@@ -133,8 +135,8 @@
       }
 
       function setCustom() {
-        var startTime = config["sunrise"];
-        var endTime = config["sunset"];
+        let startTime = config["sunrise"];
+        let endTime = config["sunset"];
 
         //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
         document.getElementById("customTime").innerHTML = "Custom: "+startTime+"  / "+endTime +" ";
@@ -142,58 +144,88 @@
 
 
       function saveCustom() {
-        var startTime = document.getElementById("customStart").value;
-        var endTime = document.getElementById("customEnd").value;
+        let valid = true;
+        let startTime = document.getElementById("customStart").value;
+        let endTime = document.getElementById("customEnd").value;
 
         console.log(startTime);
         console.log(endTime);
-        //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("customTime").innerHTML = "Custom: "+startTime+" / "+endTime;
 
-        const options = {
-          method: "POST",
-          body: new URLSearchParams({
-            sunrise: startTime,
-            sunset: endTime
-          }),
-        };
+        let re = new RegExp("^[0-9]{2}[:]{1}[0-9]{2}$");
+        if (re.test(startTime)) {
+          if(startTime.charAt(0)-'0'>2 || (startTime.charAt(1)>4&&startTime.charAt(0)>1)){
+            valid = false;
+            alert("Invalid Start Time");
+          }
+        }  else {
+            valid = false;
+            alert("Invalid Start Time Input");
+        }
 
-        fetch("/esp32/saveCustom", options)
-          .then((response) => response.json())
-          .then((response) => console.log(response))
-          .catch((err) => console.error(err));
+        if (re.test(endTime)) {
+          if(endTime.charAt(0)-'0'>2 || (endTime.charAt(1)>4&&endTime.charAt(0)>1)){
+            valid = false;
+            alert("Invalid End Time");
+          }
+        }  else {
+            valid = false;
+            alert("Invalid End Time Input");
+        }
+
+        if(valid){
+          //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+          document.getElementById("customTime").innerHTML = "Custom: "+startTime+" / "+endTime;
+
+          const options = {
+            method: "POST",
+            body: new URLSearchParams({
+              sunrise: startTime,
+              sunset: endTime
+            }),
+          };
+
+          fetch("/esp32/saveCustom", options)
+            .then((response) => response.json())
+            .then((response) => console.log(response))
+            .catch((err) => console.error(err));
+        
+        }
       }
 
       function saveDuration() {
-        var durationValue = document.getElementById("durationInput").value;
+        let durationValue = document.getElementById("durationInput").value;
 
-        //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("durationValue").innerHTML = durationValue + " minutes";
-        console.log("value " + durationValue);
+        var re = new RegExp("^[0-9]{1,3}$");
+        if (!re.test(durationValue)) {
+            valid = false;
+            alert("Invalid duration");
+        } else {
+          //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+          document.getElementById("durationValue").innerHTML = durationValue + " minutes";
+          console.log("value " + durationValue);
 
-        const options = {
-          method: "POST",
-          body: new URLSearchParams({
-            duration: durationValue,
-          }),
-        };
+          const options = {
+            method: "POST",
+            body: new URLSearchParams({
+              duration: durationValue,
+            }),
+          };
 
-        fetch("/esp32/saveDuration", options)
-          .then((response) => response.json())
-          .then((response) => {
-              document.getElementById("durationSlider").value = durationValue;
-              //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-                document.getElementById("durationValue").innerHTML = durationValue + " minutes";
-                console.log("value " + durationValue);
-                console.log(response);
-            })
-          .catch((err) => console.error(err));
-
+          fetch("/esp32/saveDuration", options)
+            .then((response) => response.json())
+            .then((response) => {
+                document.getElementById("durationSlider").value = durationValue;
+                //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+                  document.getElementById("durationValue").innerHTML = durationValue + " minutes";
+                  console.log("value " + durationValue);
+                  console.log(response);
+              })
+            .catch((err) => console.error(err));
+        }
       }
 
       function updateDuration(element) {
-        var durationValue = document.getElementById(element.id).value;
-
+        let durationValue = document.getElementById(element.id).value;
         //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
         document.getElementById("durationValue").innerHTML = durationValue + " minutes";
         console.log("value " + durationValue);
@@ -213,9 +245,9 @@
 
       function updateSliderPWM(element) {
         //slider number corresponds to the slider colors - r,g, and b
-        var sliderNumber = element.id.charAt(element.id.length - 1);
+        let sliderNumber = element.id.charAt(element.id.length - 1);
         console.log(sliderNumber);
-        var sliderValue = document.getElementById(element.id).value;
+        let sliderValue = document.getElementById(element.id).value;
 
         //gets the span with id of sliderValue+sliderNumber and makes its inner html the slider value mapped to a percentage
         document.getElementById("sliderValue" + sliderNumber).innerHTML = Math.floor(sliderValue / 2.55) + "% PinValue: " + sliderValue;
@@ -236,9 +268,9 @@
       }
 
       function updateClock() {
-        var clockElement = document.getElementById("clock");
-        var utcClockElement = document.getElementById("clock-utc");
-        var edtClockElement = document.getElementById("clock-edt");
+        let clockElement = document.getElementById("clock");
+        let utcClockElement = document.getElementById("clock-utc");
+        let edtClockElement = document.getElementById("clock-edt");
 
         function clock() {
           const today = new Date();
