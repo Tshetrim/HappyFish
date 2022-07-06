@@ -135,11 +135,19 @@
       }
 
       function setCustom() {
-        let startTime = config["sunrise"];
-        let endTime = config["sunset"];
+        let startTime = config["sunrise"]; //28800
+        let endTime = config["sunset"];    //72000
+
+        let startDate = new Date(null);
+        startDate.setSeconds(parseInt(startTime)); // specify value for SECONDS here
+        let startStr = startDate.toISOString().substr(11, 5);
+
+        let endDate = new Date(null);
+        endDate.setSeconds(parseInt(endTime)); // specify value for SECONDS here
+        let endStr = endDate.toISOString().substr(11, 5);
 
         //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("customTime").innerHTML = "Custom: "+startTime+"  / "+endTime +" ";
+        document.getElementById("customTime").innerHTML = "Custom: "+startStr+"  / "+endStr +" ";
       }
 
 
