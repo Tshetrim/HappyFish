@@ -1,5 +1,6 @@
 const path = require("path");
 const esp32 = require("../models/esp32Model");
+const log = require("../models/logModel");
 
 const reset = async (req, res) => {
 	const docs = await esp32.find();
@@ -46,6 +47,16 @@ const config = async (req, res) => {
 	}
 
 	doc["tod"] = parseInt(hours) * 60 * 60 + parseInt(mins) * 60 + parseInt(secs);
+
+	//saving a log
+	let userAgent = req.headers["user-agent"];
+	if (userAgent == undefined) userAgent = "Caller Unknown";
+	const newLog = new log({
+		msg: "Config requested: " + userAgent,
+		timeStamp: today,
+	});
+	await newLog.save();
+	console.log("Saved new log: " + newLog);
 
 	return res.status(201).json(doc);
 };
