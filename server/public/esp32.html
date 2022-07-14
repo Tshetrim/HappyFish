@@ -118,7 +118,7 @@
             </div>
          </div>
       </div>
-      
+
       <script>
          let config;
          let redValue, blueValue, greenValue;
@@ -180,6 +180,9 @@
          function secToTime(timeInSeconds){
            let tempDate = new Date(null);
            tempDate.setSeconds(timeInSeconds); // specify value for SECONDS here
+
+           if(timeInSeconds==24*60*60)
+            return "24:00";
            return tempDate.toISOString().substr(11, 5);
          }
          
@@ -215,7 +218,6 @@
            if (re.test(startTime)) {
              if(startTime.charAt(0)-'0'>2 || (startTime.charAt(1)>4&&startTime.charAt(0)>1)){
                valid = false;
-               alert("Invalid Start Time");
              }
            }  else {
                valid = false;
@@ -230,6 +232,13 @@
            }  else {
                valid = false;
                alert("Invalid End Time Input");
+           }
+
+           //temporary hotfix - can remove if ESP32 gets case checks for  taking a sunriseValue > sunsetValue but currently, leaving a check to prevent this
+            //note progressbar and other frontend components are fit to handle this 
+           if( timeToSec(endTime) < timeToSec(startTime)  ){
+              valid = false;
+              alert("Please make sure end time is greater than start time");
            }
          
            if(valid){
@@ -398,6 +407,9 @@
              let leftPercentage = (startTime-start)/totalDay * 100;
              let rightPercentage = (midnight-endTime)/totalDay * 100;
          
+             if(rightPercentage<0 && endTime == totalDay){
+                rightPercentage = 0;
+             }
          
              //left progress bar
              progBarLeft.setAttribute(`class`, `progress-bar bg-dark`);
