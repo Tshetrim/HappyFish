@@ -65,7 +65,7 @@
                         <label for="javascript">Change dark start time</label>
                         <input type="text" id="customEnd"  placeHolder = "hh:mm"  title="hh:mm" class="textInput" required />
                         <br>
-                        <button class = "btn-primary" onClick="saveCustom()">Save start/end time</button>
+                        <button class = "btn-primary mt-2 rounded" onClick="saveCustom()">Save start/end time</button>
                      </div>
 
                      <!------------- duration ------------->
@@ -73,7 +73,7 @@
                         <label for="javascript">Change Duration in minutes</label>
                         <input type="text" id="durationInput"  placeHolder = "mm" class="textInput" />
                         <br>
-                        <button class = "btn-primary" onClick="saveDuration()">Save Duration</button><br>
+                        <button class = "btn-primary mt-1 rounded" onClick="saveDuration()">Save Duration</button><br>
                         <input type="range" oninput = "inputUpdateDuration(this)" onchange="updateDuration(this)" id="durationSlider" min="0" max="180" step="1" value="0" class="slider" />
                         <p class="state">Duration Time: <span id="durationValue"></span></p>
                      </div>
