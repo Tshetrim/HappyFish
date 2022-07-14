@@ -1,299 +1,443 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>ESP IOT DASHBOARD</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
+   <head>
+      <title>ESP IOT DASHBOARD</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link
+         href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+         rel="stylesheet"
+         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+         crossorigin="anonymous"
+         />
+   </head>
 
-  <body onload="getConfig();">
-    <div class="clock">
-      <h4>Current server time:</h4>
-      <p id="clock"></p>
-      <h4>Current UTC time:</h4>
-      <p id="clock-utc"></p>
-      <h4>Current NYC time:</h4>
-      <p id="clock-edt"></p>
-    </div>
+   <body class = "bg-dark" onload="getConfig();">
+      <div class = "container-sm bg-light p-3">
+         <h1 class = "text-center text-primary m-3 text-decoration-underline">Incubator</h1>
 
-    <div class="modes">
-      <h1>Automatic modes</h1>
-      <p>Calculated based off utc time. EX: 12/12 = 8:00am - 8:00pm utc</p>
-      <p>In NYC time = 4:00am - 4:00pm during Daylight savings time and 5:00am - 5:00pm Eastern time</p>
-      <div class="card-grid">
-        <!-- <input type="radio" id="12/12" name="automatic" value="12/12" />
-        <label for="html">12/12 : 8:00am / 8:00pm utc</label><br />
+         <!------------------------------- clock -------------------------------------->
+         <div class = "container text-center border border-2 rounded-2" class="clock">
+            <h4>Current server time:</h4>
+            <p id="clock"></p>
+            <h4 class = "text-decoration-underline">Current UTC time:</h4>
+            <p class = "text-success" id="clock-utc"></p>
+            <h4 >Current NYC time:</h4>
+            <p id="clock-edt"></p>
+            <p class = "text-decoration-underline">*Note: Incubator is currently running on UTC time* </p>
+            <p class = "mt-3 ">
+               <span class = "border border-2 border-success rounded p-2" id="clock-current"></span>
+            </p>
+         </div>
+         
+         <!------------------------------- mode -------------------------------------->
+         <div class="modes contaner-sm text-wrap border border-2 rounded-2 mt-3 p-3">
+            <h1 class = "text-center m-3 text-decoration-underline" >Automatic modes</h1>
+            <div class="card-grid">
 
-        <input type="radio" id="18/6" name="automatic" value="18/6" />
-        <label for="css">18/6 : </label><br /> -->
+               <div class = "custom text-center mb-4">
 
-        <div class = "custom">
-            <input type="radio" id="javascript" name="automatic" value="Custom" checked="checked" />
-            <label for="javascript"></label><span id="customTime"></span></label><br />
-        </div>
+                  <input type="radio" id="javascript" name="automatic" value="Custom" checked="checked" />
+                  <label for="javascript"></label><span id="customTime"></span></label><br />
 
-        <!------------- custom start/end times  ------------->
-        <p>Set time with format:    hh:mm</p>
+                  <!--------------- light/dark progress bar  ------------>
+                  <div class="progress mt-2" id="progress-container">
+                     <div id = "progbar-left" class="progress-bar bg-dark" style="width: 25%"> 
+                        00:00 - 07:59
+                     </div>
+                     <div id = "progbar-middle" class="progress-bar bg-info" style="width: 50%" > 
+                        8:00 - 20:00
+                     </div>
+                     <div  id = "progbar-right" class="progress-bar bg-dark" style="width: 25%">
+                        20:00 - 23:59
+                     </div>
+                  </div>
+               </div>
 
+               <!-------------------------- change settings---------------------- -->
+               <div class = "container">
+                  <div class = "row">
 
-        <label for="javascript">Custom start lighting up</label>
-        <input type="text" id="customStart"   title="hh:mm" placeHolder = "hh:mm" class="textInput" required/>
+                     <!------------- custom start/end times input  ------------->
+                     <div class = "col-sm">
+                        <label for="javascript">Change light start time</label>
+                        <input type="text" id="customStart"   title="hh:mm" placeHolder = "hh:mm" class="textInput" required/>
+                        <br>
+                        <label for="javascript">Change dark start time</label>
+                        <input type="text" id="customEnd"  placeHolder = "hh:mm"  title="hh:mm" class="textInput" required />
+                        <br>
+                        <button class = "btn-primary" onClick="saveCustom()">Save start/end time</button>
+                     </div>
 
-        <label for="javascript">Custom start dimming down</label>
-        <input type="text" id="customEnd"  placeHolder = "hh:mm"  title="hh:mm" class="textInput" required />
+                     <!------------- duration ------------->
+                     <div class = "col-sm">
+                        <label for="javascript">Change Duration in minutes</label>
+                        <input type="text" id="durationInput"  placeHolder = "mm" class="textInput" />
+                        <br>
+                        <button class = "btn-primary" onClick="saveDuration()">Save Duration</button><br>
+                        <input type="range" onchange="updateDuration(this)" id="durationSlider" min="0" max="180" step="1" value="0" class="slider" />
+                        <p class="state">Duration Time: <span id="durationValue"></span></p>
+                     </div>
 
-        <button onClick="saveCustom()">Save</button><br>
+                  </div>
+               </div>
+            </div>
+         </div>
 
-
-        <!------------- duration ------------->
-        <label for="javascript">Change Duration in minutes</label>
-        <input type="text" id="durationInput"  placeHolder = "mm" class="textInput" />
-        <button onClick="saveDuration()">Save</button><br>
-
-        <input type="range" onchange="updateDuration(this)" id="durationSlider" min="0" max="180" step="1" value="0" class="slider" />
-        <p class="state">Duration Time: <span id="durationValue"></span></p>
+         <!-- ------------------------sliders below ----------------// -->
+         <div class="topnav">
+            <h1 class = "text-center m-3 text-decoration-underline">RGB Slider</h1>
+         </div>
+         <div class="content contaner-sm text-wrap border border-2 rounded-2 mt-3 p-3 text-center">
+            <div class = "container">
+               <div class="row">
+                  <div class="card col-sm">
+                     <p class="card-title">Red Intensity</p>
+                     <p class="switch">
+                        <input type="range" onchange="updateSliderPWM(this)" id="sliderr" min="0" max="255" step="1" value="0" class="slider" />
+                     </p>
+                     <p class="state"><span id="sliderValuer"></span></p>
+                  </div>
+                  <div class="card col-sm">
+                     <p class="card-title">Green Intensity</p>
+                     <p class="switch">
+                        <input type="range" onchange="updateSliderPWM(this)" id="sliderg" min="0" max="255" step="1" value="0" class="slider" />
+                     </p>
+                     <p class="state"><span id="sliderValueg"></span></p>
+                  </div>
+                  <div class="card col-sm">
+                     <p class="card-title">Blue Intensity</p>
+                     <p class="switch">
+                        <input type="range" onchange="updateSliderPWM(this)" id="sliderb" min="0" max="255" step="1" value="0" class="slider" />
+                     </p>
+                     <p class="state"><span id="sliderValueb"></span></p>
+                  </div>
+               </div>
+            </div>
+            <div class = "card">
+               <div id="change" style="height: 100px; background-color: rgb(255, 255, 198);"> Current Incubator Color (when lightmode) </div>
+            </div>
+         </div>
       </div>
-    </div>
-
-    <!-- ------------------------sliders below ----------------// -->
-    <div class="topnav">
-      <h1>Multiple Sliders</h1>
-    </div>
-    <div class="content">
-      <div class="card-grid">
-        <div class="card">
-          <p class="card-title">Fader R</p>
-          <p class="switch">
-            <input type="range" onchange="updateSliderPWM(this)" id="sliderr" min="0" max="255" step="1" value="0" class="slider" />
-          </p>
-          <p class="state">Brightness: <span id="sliderValuer"></span></p>
-        </div>
-        <div class="card">
-          <p class="card-title">Fader G</p>
-          <p class="switch">
-            <input type="range" onchange="updateSliderPWM(this)" id="sliderg" min="0" max="255" step="1" value="0" class="slider" />
-          </p>
-          <p class="state">Brightness: <span id="sliderValueg"></span></p>
-        </div>
-        <div class="card">
-          <p class="card-title">Fader B</p>
-          <p class="switch">
-            <input type="range" onchange="updateSliderPWM(this)" id="sliderb" min="0" max="255" step="1" value="0" class="slider" />
-          </p>
-          <p class="state">Brightness: <span id="sliderValueb"></span></p>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      let config;
-
-      function getConfig() {
-        const options = {
-          method: "GET",
-        };
-
-        fetch("/esp32/config", options)
-          .then((response) => response.json())
-          .then((response) => {
-            config = response;
-            console.log(config);
-            setCustom();
-            setSliderPWM("r");
-            setSliderPWM("g");
-            setSliderPWM("b");
-            setDuration();
-            updateClock();
-          })
-          .catch((err) => console.error(err));
-      }
-
-      function setSliderPWM(number) {
-        //slider number corresponds to the slider colors - r,g, and b
-        let sliderNumber = number;
-        console.log(sliderNumber);
-        let sliderValue = config[sliderNumber + "Value"];
-        console.log(sliderValue);
-
-        //gets slider and sets its value to config value
-        document.getElementById("slider" + sliderNumber).value = sliderValue;
-
-        //gets the span with id of sliderValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("sliderValue" + sliderNumber).innerHTML = Math.floor(sliderValue / 2.55) + "% PinValue: " + sliderValue;
-        console.log("value " + sliderValue);
-      }
-
-      function setDuration() {
-        let durationValue = config["duration"];
-        console.log(durationValue);
-
-        //gets slider and sets its value to config value
-        document.getElementById("durationSlider").value = durationValue;
-
-        //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("durationValue").innerHTML = durationValue + " minutes";
-        console.log("value " + durationValue);
-      }
-
-      function setCustom() {
-        let startTime = config["sunrise"]; //28800
-        let endTime = config["sunset"];    //72000
-
-        let startDate = new Date(null);
-        startDate.setSeconds(parseInt(startTime)); // specify value for SECONDS here
-        let startStr = startDate.toISOString().substr(11, 5);
-
-        let endDate = new Date(null);
-        endDate.setSeconds(parseInt(endTime)); // specify value for SECONDS here
-        let endStr = endDate.toISOString().substr(11, 5);
-
-        //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("customTime").innerHTML = "Custom: "+startStr+"  / "+endStr +" ";
-      }
-
-
-      function saveCustom() {
-        let valid = true;
-        let startTime = document.getElementById("customStart").value;
-        let endTime = document.getElementById("customEnd").value;
-
-        console.log(startTime);
-        console.log(endTime);
-
-        let re = new RegExp("^[0-9]{2}[:]{1}[0-9]{2}$");
-        if (re.test(startTime)) {
-          if(startTime.charAt(0)-'0'>2 || (startTime.charAt(1)>4&&startTime.charAt(0)>1)){
-            valid = false;
-            alert("Invalid Start Time");
-          }
-        }  else {
-            valid = false;
-            alert("Invalid Start Time Input");
-        }
-
-        if (re.test(endTime)) {
-          if(endTime.charAt(0)-'0'>2 || (endTime.charAt(1)>4&&endTime.charAt(0)>1)){
-            valid = false;
-            alert("Invalid End Time");
-          }
-        }  else {
-            valid = false;
-            alert("Invalid End Time Input");
-        }
-
-        if(valid){
-          //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-          document.getElementById("customTime").innerHTML = "Custom: "+startTime+" / "+endTime;
-
-          const options = {
-            method: "POST",
-            body: new URLSearchParams({
-              sunrise: startTime,
-              sunset: endTime
-            }),
-          };
-
-          fetch("/esp32/saveCustom", options)
-            .then((response) => response.json())
-            .then((response) => console.log(response))
-            .catch((err) => console.error(err));
-        
-        }
-      }
-
-      function saveDuration() {
-        let durationValue = document.getElementById("durationInput").value;
-
-        var re = new RegExp("^[0-9]{1,3}$");
-        if (!re.test(durationValue)) {
-            valid = false;
-            alert("Invalid duration");
-        } else {
-          //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-          document.getElementById("durationValue").innerHTML = durationValue + " minutes";
-          console.log("value " + durationValue);
-
-          const options = {
-            method: "POST",
-            body: new URLSearchParams({
-              duration: durationValue,
-            }),
-          };
-
-          fetch("/esp32/saveDuration", options)
-            .then((response) => response.json())
-            .then((response) => {
-                document.getElementById("durationSlider").value = durationValue;
-                //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-                  document.getElementById("durationValue").innerHTML = durationValue + " minutes";
-                  console.log("value " + durationValue);
-                  console.log(response);
-              })
-            .catch((err) => console.error(err));
-        }
-      }
-
-      function updateDuration(element) {
-        let durationValue = document.getElementById(element.id).value;
-        //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("durationValue").innerHTML = durationValue + " minutes";
-        console.log("value " + durationValue);
-
-        const options = {
-          method: "POST",
-          body: new URLSearchParams({
-            duration: durationValue,
-          }),
-        };
-
-        fetch("/esp32/saveDuration", options)
-          .then((response) => response.json())
-          .then((response) => console.log(response))
-          .catch((err) => console.error(err));
-      }
-
-      function updateSliderPWM(element) {
-        //slider number corresponds to the slider colors - r,g, and b
-        let sliderNumber = element.id.charAt(element.id.length - 1);
-        console.log(sliderNumber);
-        let sliderValue = document.getElementById(element.id).value;
-
-        //gets the span with id of sliderValue+sliderNumber and makes its inner html the slider value mapped to a percentage
-        document.getElementById("sliderValue" + sliderNumber).innerHTML = Math.floor(sliderValue / 2.55) + "% PinValue: " + sliderValue;
-        console.log("value " + sliderValue);
-
-        const options = {
-          method: "POST",
-          body: new URLSearchParams({
-            pin: sliderNumber,
-            value: sliderValue,
-          }),
-        };
-
-        fetch("/esp32/save", options)
-          .then((response) => response.json())
-          .then((response) => console.log(response))
-          .catch((err) => console.error(err));
-      }
-
-      function updateClock() {
-        let clockElement = document.getElementById("clock");
-        let utcClockElement = document.getElementById("clock-utc");
-        let edtClockElement = document.getElementById("clock-edt");
-
-        function clock() {
-          const today = new Date();
-          clockElement.textContent = today.toString();
-
-          const utc = new Date(today.toUTCString());
-          utcClockElement.textContent = utc.toUTCString();
-
-          const edt = utc.toLocaleString("en-US", { dateStyle: "full", timeStyle: "full" }, { timeZone: "America/New_York" });
-          //edt.setHours(edt.getHours() - 4);
-          edtClockElement.textContent = edt.toString();
-        }
-
-        setInterval(clock, 1000);
-      }
-    </script>
-  </body>
+      
+      <script>
+         let config;
+         let redValue, blueValue, greenValue;
+         
+         function getConfig() {
+           const options = {
+             method: "GET",
+           };
+         
+           fetch("/esp32/config", options)
+             .then((response) => response.json())
+             .then((response) => {
+               config = response;
+               console.log(config);
+               setCustom();
+               setSliderPWM("r");
+               setSliderPWM("g");
+               setSliderPWM("b");
+               updateColorDisplay();
+               setDuration();
+               updateClock();
+               updateProgressBar(config["sunrise"], config["sunset"]);
+             })
+             .catch((err) => console.error(err));
+         }
+         
+         
+         function setSliderPWM(number) {
+           //slider number corresponds to the slider colors - r,g, and b
+           let sliderNumber = number;
+           console.log(sliderNumber);
+           let sliderValue = config[sliderNumber + "Value"];
+           console.log(sliderValue);
+         
+           //gets slider and sets its value to config value
+           document.getElementById("slider" + sliderNumber).value = sliderValue;
+         
+           //gets the span with id of sliderValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+           document.getElementById("sliderValue" + sliderNumber).innerHTML = "Color Value: " + sliderValue;
+           console.log("value " + sliderValue);
+         
+           updateColorValue(sliderNumber, sliderValue);
+           updateColorDisplay();
+         }
+         
+         function setDuration() {
+           let durationValue = config["duration"];
+           console.log(durationValue);
+         
+           //gets slider and sets its value to config value
+           document.getElementById("durationSlider").value = durationValue;
+         
+           //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+           document.getElementById("durationValue").innerHTML = durationValue + " minutes";
+           console.log("value " + durationValue);
+         }
+         
+         //turns time in the form of seconds in a 24 hour period to the hh:mm format and returns it as a string
+         function secToTime(timeInSeconds){
+           let tempDate = new Date(null);
+           tempDate.setSeconds(timeInSeconds); // specify value for SECONDS here
+           return tempDate.toISOString().substr(11, 5);
+         }
+         
+         //turns hh:mm to seconds 
+         function timeToSec(timeFormatted){
+           let hours = timeFormatted.charAt(0) - "0" * 10 + timeFormatted.charAt(1) - "0";
+          let mins = timeFormatted.charAt(3) - "0" * 10 + timeFormatted.charAt(4) - "0";
+           return hours*60*60 + mins*60;
+         }
+         
+         function setCustom() {
+           let startTime = config["sunrise"]; //28800
+           let endTime = config["sunset"];    //72000
+         
+           let startStr = secToTime(startTime);
+           let endStr = secToTime(endTime);
+         
+           //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+           document.getElementById("customTime").innerHTML = startStr+"  / "+endStr +" ";
+         
+         }
+         
+         function saveCustom() {
+           let valid = true;
+           let startTime = document.getElementById("customStart").value;
+           let endTime = document.getElementById("customEnd").value;
+         
+           console.log(startTime);
+           console.log(endTime);
+         
+           //input validation 
+           let re = new RegExp("^[0-9]{2}[:]{1}[0-9]{2}$");
+           if (re.test(startTime)) {
+             if(startTime.charAt(0)-'0'>2 || (startTime.charAt(1)>4&&startTime.charAt(0)>1)){
+               valid = false;
+               alert("Invalid Start Time");
+             }
+           }  else {
+               valid = false;
+               alert("Invalid Start Time Input");
+           }
+         
+           if (re.test(endTime)) {
+             if(endTime.charAt(0)-'0'>2 || (endTime.charAt(1)>4&&endTime.charAt(0)>1)){
+               valid = false;
+               alert("Invalid End Time");
+             }
+           }  else {
+               valid = false;
+               alert("Invalid End Time Input");
+           }
+         
+           if(valid){
+             //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+             document.getElementById("customTime").innerHTML = startTime+" / "+endTime;
+             updateProgressBar(timeToSec(startTime), timeToSec(endTime));
+             
+             const options = {
+               method: "POST",
+               body: new URLSearchParams({
+                 sunrise: startTime,
+                 sunset: endTime
+               }),
+             };
+         
+             fetch("/esp32/saveCustom", options)
+               .then((response) => response.json())
+               .then((response) => console.log(response))
+               .catch((err) => console.error(err));
+         
+           }
+         }
+         
+         function saveDuration() {
+           let durationValue = document.getElementById("durationInput").value;
+         
+           var re = new RegExp("^[0-9]{1,3}$");
+           if (!re.test(durationValue)) {
+               valid = false;
+               alert("Invalid duration");
+           } else {
+             //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+             document.getElementById("durationValue").innerHTML = durationValue + " minutes";
+             console.log("value " + durationValue);
+         
+             const options = {
+               method: "POST",
+               body: new URLSearchParams({
+                 duration: durationValue,
+               }),
+             };
+         
+             fetch("/esp32/saveDuration", options)
+               .then((response) => response.json())
+               .then((response) => {
+                   document.getElementById("durationSlider").value = durationValue;
+                   //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+                     document.getElementById("durationValue").innerHTML = durationValue + " minutes";
+                     console.log("value " + durationValue);
+                     console.log(response);
+                 })
+               .catch((err) => console.error(err));
+           }
+         }
+         
+         function updateDuration(element) {
+           let durationValue = document.getElementById(element.id).value;
+           //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+           document.getElementById("durationValue").innerHTML = durationValue + " minutes";
+           console.log("value " + durationValue);
+         
+           const options = {
+             method: "POST",
+             body: new URLSearchParams({
+               duration: durationValue,
+             }),
+           };
+         
+           fetch("/esp32/saveDuration", options)
+             .then((response) => response.json())
+             .then((response) => console.log(response))
+             .catch((err) => console.error(err));
+         }
+         
+         //updates the slider PWM, posts the new value to the database, and updates the color block respectively
+         function updateSliderPWM(element) {
+           //slider number corresponds to the slider colors - r,g, and b
+           let sliderNumber = element.id.charAt(element.id.length - 1);
+           console.log(sliderNumber);
+           let sliderValue = document.getElementById(element.id).value;
+         
+           //gets the span with id of sliderValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+           document.getElementById("sliderValue" + sliderNumber).innerHTML = "Color Value: " + sliderValue;
+           console.log("value " + sliderValue);
+         
+           const options = {
+             method: "POST",
+             body: new URLSearchParams({
+               pin: sliderNumber,
+               value: sliderValue,
+             }),
+           };
+         
+           fetch("/esp32/save", options)
+             .then((response) => response.json())
+             .then((response) => console.log(response))
+             .catch((err) => console.error(err));
+         
+           
+           updateColorValue(sliderNumber, sliderValue);
+           updateColorDisplay();
+         }
+         
+         //updates the running clocks every second 
+         function updateClock() {
+           let clockElement = document.getElementById("clock");
+           let utcClockElement = document.getElementById("clock-utc");
+           let edtClockElement = document.getElementById("clock-edt");
+           let currentClockElement = document.getElementById("clock-current");
+         
+           function clock() {
+             const today = new Date();
+             clockElement.textContent = today.toString();
+         
+             const utc = new Date(today.toUTCString());
+             utcClockElement.textContent = utc.toUTCString();
+         
+             const edt = utc.toLocaleString("en-US", { dateStyle: "full", timeStyle: "full" }, { timeZone: "America/New_York" });
+             //edt.setHours(edt.getHours() - 4);
+             edtClockElement.textContent = edt.toString();
+         
+             // if current clock changes to a different time zone, ex. edt - use edt for currentClock
+             currentClockElement.textContent = today.toUTCString().substring(17,25);
+           }
+         
+           setInterval(clock, 1000);
+         }
+         
+         //helper method to update global rgb values
+         function updateColorValue(number, sliderValue){
+           //setting colors
+           if(number==="r"){
+             redValue = sliderValue;
+           } else if(number==="g"){
+             greenValue = sliderValue;
+           } else if(number==="b"){
+             blueValue = sliderValue;
+           }
+         }
+         
+         //updates the color display block which changes color depending on the current rgb values
+         function updateColorDisplay(){
+           document.getElementById("change").style.backgroundColor = `rgb(${redValue},${greenValue},${blueValue})`;
+         }
+         
+         //updates the progress bar such that changing the custom time will reflect in the changing of the proportions 
+         function updateProgressBar(startTime, endTime){
+           let progBarLeft = document.getElementById("progbar-left");
+           let progBarMiddle = document.getElementById("progbar-middle");
+           let progBarRight = document.getElementById("progbar-right");
+         
+         
+           //getting seconds of key times -> 00:00, 23:59, and 24:00
+           let totalDay = 24*60*60;
+           let start = 0;
+           let midnight = 23*60*60+59*60;
+         
+           let startDate = new Date(null);
+           startDate.setSeconds(parseInt(startTime)); // specify value for SECONDS here
+           let startStr = startDate.toISOString().substr(11, 5);
+         
+           if(startTime < endTime ){
+             let diff = endTime - startTime;
+         
+             let middlePercentage = diff/totalDay * 100;
+             let leftPercentage = (startTime-start)/totalDay * 100;
+             let rightPercentage = (midnight-endTime)/totalDay * 100;
+         
+         
+             //left progress bar
+             progBarLeft.setAttribute(`class`, `progress-bar bg-dark`);
+             progBarLeft.setAttribute(`style`, `width: ${leftPercentage}%`);
+             progBarLeft.innerText = `00:00 - ${secToTime(startTime)}`;
+         
+             //middle progress bar
+             progBarMiddle.setAttribute(`class`, `progress-bar bg-info`);
+             progBarMiddle.setAttribute(`style`, `width: ${middlePercentage}%`);
+             progBarMiddle.innerText = `${secToTime(startTime)} - ${secToTime(endTime)}`;
+             
+             //right progress bar
+             progBarRight.setAttribute(`class`, `progress-bar bg-dark`);
+             progBarRight.setAttribute(`style`, `width: ${rightPercentage}%`);
+             progBarRight.innerText = `${secToTime(endTime)} - 23:59`;
+           } else{
+             let rightDiff = midnight-startTime;
+             
+             let leftPercentage = (endTime/totalDay) *100; //on
+             let middlePercentage = Math.abs((endTime-startTime)/totalDay) * 100//off
+             let rightPercentage = (rightDiff/totalDay) *100;  //on
+         
+             //left progress bar
+             progBarLeft.setAttribute(`class`, `progress-bar bg-info`);
+             progBarLeft.setAttribute(`style`, `width: ${leftPercentage}%`);
+             progBarLeft.innerText = `00:00 - ${secToTime(endTime)}`;
+         
+             //middle progress bar
+             progBarMiddle.setAttribute(`class`, `progress-bar bg-dark`);
+             progBarMiddle.setAttribute(`style`, `width: ${middlePercentage}%`);
+             progBarMiddle.innerText = `${secToTime(endTime)} - ${secToTime(startTime)}`;
+             
+             //right progress bar
+             progBarRight.setAttribute(`class`, `progress-bar bg-info`);
+             progBarRight.setAttribute(`style`, `width: ${rightPercentage}%`);
+             progBarRight.innerText = `${secToTime(startTime)} - 23:59`;
+           }
+         
+         }
+         
+      </script>
+   </body>
 </html>
