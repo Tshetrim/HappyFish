@@ -166,14 +166,21 @@ const saveCustom = async (req, res) => {
 	}
 
 	//gets the seconds value of date in format hh:mm
-	let sunriseValue = sunriseHours * 60 * 60 + sunriseMins * 60;
-	let sunsetValue = sunsetHours * 60 * 60 + sunsetMins * 60;
+	let sunriseValue = (sunriseHours * 60 * 60) + (sunriseMins * 60);
+	let sunsetValue = (sunsetHours * 60 * 60) + (sunsetMins * 60);
 
 	//can remove if ESP32 can handle taking a sunriseValue > sunsetValue but currently, leaving a check to prevent this
 	if (sunriseValue > sunsetValue) {
 		return res
 			.status(400)
 			.json({ error: "invalid input - sunrise value must be less than sunset value" });
+	}
+
+	//checking if time is > 24:00
+	if (sunriseValue > (24 * 60 * 60) || sunsetValue > (24 * 60 * 60)) {
+		return res
+			.status(400)
+			.json({ error: "invalid input - value must be less than 24:00 in seconds" });
 	}
 
 	doc["sunrise"] = sunriseValue;

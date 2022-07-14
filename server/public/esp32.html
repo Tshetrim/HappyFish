@@ -234,6 +234,12 @@
                alert("Invalid End Time Input");
            }
 
+           //quick messy way to check if input time was > 24:00   (the regex/char checks above only account for hours and not minutes at the moment so while 25:00 is invalid, 24:04 is valid)
+           if(timeToSec(startTime)>(24*60*60) || timeToSec(endTime)>(24*60*60)){
+              valid = false;
+              alert("Invalid Time Input, cannot be greater than 24:00")
+           }
+
            //temporary hotfix - can remove if ESP32 gets case checks for  taking a sunriseValue > sunsetValue but currently, leaving a check to prevent this
             //note progressbar and other frontend components are fit to handle this 
            if( timeToSec(endTime) < timeToSec(startTime)  ){
