@@ -74,7 +74,7 @@
                         <input type="text" id="durationInput"  placeHolder = "mm" class="textInput" />
                         <br>
                         <button class = "btn-primary" onClick="saveDuration()">Save Duration</button><br>
-                        <input type="range" onchange="updateDuration(this)" id="durationSlider" min="0" max="180" step="1" value="0" class="slider" />
+                        <input type="range" oninput = "inputUpdateDuration(this)" onchange="updateDuration(this)" id="durationSlider" min="0" max="180" step="1" value="0" class="slider" />
                         <p class="state">Duration Time: <span id="durationValue"></span></p>
                      </div>
 
@@ -93,21 +93,21 @@
                   <div class="card col-sm">
                      <p class="card-title">Red Intensity</p>
                      <p class="switch">
-                        <input type="range" onchange="updateSliderPWM(this)" id="sliderr" min="0" max="255" step="1" value="0" class="slider" />
+                        <input type="range" oninput = "onInputSliderPWM(this)" onchange="updateSliderPWM(this)" id="sliderr" min="0" max="255" step="1" value="0" class="slider" />
                      </p>
                      <p class="state"><span id="sliderValuer"></span></p>
                   </div>
                   <div class="card col-sm">
                      <p class="card-title">Green Intensity</p>
                      <p class="switch">
-                        <input type="range" onchange="updateSliderPWM(this)" id="sliderg" min="0" max="255" step="1" value="0" class="slider" />
+                        <input type="range" oninput = "onInputSliderPWM(this)" onchange="updateSliderPWM(this)" id="sliderg" min="0" max="255" step="1" value="0" class="slider" />
                      </p>
                      <p class="state"><span id="sliderValueg"></span></p>
                   </div>
                   <div class="card col-sm">
                      <p class="card-title">Blue Intensity</p>
                      <p class="switch">
-                        <input type="range" onchange="updateSliderPWM(this)" id="sliderb" min="0" max="255" step="1" value="0" class="slider" />
+                        <input type="range" oninput = "onInputSliderPWM(this)" onchange="updateSliderPWM(this)" id="sliderb" min="0" max="255" step="1" value="0" class="slider" />
                      </p>
                      <p class="state"><span id="sliderValueb"></span></p>
                   </div>
@@ -144,7 +144,6 @@
              })
              .catch((err) => console.error(err));
          }
-         
          
          function setSliderPWM(number) {
            //slider number corresponds to the slider colors - r,g, and b
@@ -300,6 +299,8 @@
            }
          }
          
+         //updates duration through slider and saves to database
+         //called only when slider is let go of, (loses focus)
          function updateDuration(element) {
            let durationValue = document.getElementById(element.id).value;
            //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
@@ -318,8 +319,17 @@
              .then((response) => console.log(response))
              .catch((err) => console.error(err));
          }
+
+         //same as updateDuration but does not save to database and called when slider is moving
+         function inputUpdateDuration(element){
+          let durationValue = document.getElementById(element.id).value;
+           //gets the span with id of durationValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+           document.getElementById("durationValue").innerHTML = durationValue + " minutes";
+           console.log("value " + durationValue);
+         }
          
-         //updates the slider PWM, posts the new value to the database, and updates the color block respectively
+         //updates the slider PWM, posts the new value to the database, and updates the color block respectively 
+         //only called when slider is let go of (loses focus)
          function updateSliderPWM(element) {
            //slider number corresponds to the slider colors - r,g, and b
            let sliderNumber = element.id.charAt(element.id.length - 1);
@@ -344,6 +354,21 @@
              .catch((err) => console.error(err));
          
            
+           updateColorValue(sliderNumber, sliderValue);
+           updateColorDisplay();
+         }
+
+         //updates the sliderPWM label - this replica of updateSliderPWM does save to the database because its called when the slider is being moved
+         function onInputSliderPWM(element) {
+           //slider number corresponds to the slider colors - r,g, and b
+           let sliderNumber = element.id.charAt(element.id.length - 1);
+           console.log(sliderNumber);
+           let sliderValue = document.getElementById(element.id).value;
+
+           //gets the span with id of sliderValue+sliderNumber and makes its inner html the slider value mapped to a percentage
+           document.getElementById("sliderValue" + sliderNumber).innerHTML = "Color Value: " + sliderValue;
+           console.log("value " + sliderValue);
+
            updateColorValue(sliderNumber, sliderValue);
            updateColorDisplay();
          }
