@@ -49,11 +49,14 @@ router.get("/api/config", apiController.config);
 router.put("/api/config/syncd", authController.clientAuth, apiController.syncdNotify);
 
 /* ESP32 Project */
+router.get("/esp32", esp32Controller.loginPageESP32);
 router.get("/esp32/reset", esp32Controller.reset);
 router.get("/esp32/config", esp32Controller.config);
+router.post("/esp32/login", esp32Controller.loginESP32);
 router.get("/esp32/dashboard", esp32Controller.dashboard);
 router.post("/esp32/save", esp32Controller.save);
 router.post("/esp32/saveDuration", esp32Controller.saveDuration);
 router.post("/esp32/saveCustom", esp32Controller.saveCustom);
+
 
 module.exports = router;

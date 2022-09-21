@@ -1,8 +1,15 @@
 const path = require("path");
 const esp32 = require("../models/esp32Model");
 const log = require("../models/logModel");
+require('dotenv').config();
 
 const reset = async (req, res) => {
+	var session = req.session;
+
+	if (!session.userid){
+		return res.status(400).json({ error: "not logged in" });
+	} 
+
 	const docs = await esp32.find();
 
 	if (docs.length == 0) {
@@ -61,11 +68,49 @@ const config = async (req, res) => {
 	return res.status(201).json(doc);
 };
 
+
+const loginPageESP32 = async (req, res) => {
+	var session = req.session;
+
+	if (session.userid) {
+		res.sendFile(path.resolve(__dirname, "../public/esp32.html"));
+	} else {
+	  	res.sendFile(path.resolve(__dirname, "../public/loginEsp32.html"));
+	}
+};
+
+
+const loginESP32 = async (req, res) => {
+	try {
+	  console.log('Login attempt ' + JSON.stringify(req.body))
+  
+	  if (req.body.password == process.env.INCUBATOR_PASSWORD) {
+		var session = req.session;
+		session.userid = req.body.username;
+		console.log(req.session);
+	
+		res.redirect("/esp32/dashboard");
+	  } else {
+		res.send("Invalid username or password");
+	  }
+	} catch (err) {
+	  console.log(error)
+	  return res.status(400).json({'error': 'exception thrown'})
+	}
+};
+
 const dashboard = async (req, res) => {
 	res.sendFile(path.resolve(__dirname, "../public/esp32.html"));
 };
 
 const save = async (req, res) => {
+
+	var session = req.session;
+
+	if (!session.userid){
+		return res.status(400).json({ error: "not logged in" });
+	} 
+
 	console.log("incoming data");
 	console.log(JSON.stringify(req.body));
 
@@ -92,6 +137,12 @@ const saveDuration = async (req, res) => {
 	console.log("incoming data");
 	console.log(JSON.stringify(req.body));
 
+	var session = req.session;
+
+	if (!session.userid){
+		return res.status(400).json({ error: "not logged in" });
+	} 
+
 	//input validation
 	if (!req.body.duration) return res.status(400).json({ error: "missing duration" });
 
@@ -114,6 +165,12 @@ const saveDuration = async (req, res) => {
 const saveCustom = async (req, res) => {
 	console.log("incoming data");
 	console.log(JSON.stringify(req.body));
+
+	var session = req.session;
+
+	if (!session.userid){
+		return res.status(400).json({ error: "not logged in" });
+	} 
 
 	if (!req.body.sunrise || !req.body.sunset)
 		return res.status(400).json({ error: "missing sunrise / sunset" });
@@ -166,8 +223,8 @@ const saveCustom = async (req, res) => {
 	}
 
 	//gets the seconds value of date in format hh:mm
-	let sunriseValue = (sunriseHours * 60 * 60) + (sunriseMins * 60);
-	let sunsetValue = (sunsetHours * 60 * 60) + (sunsetMins * 60);
+	let sunriseValue = sunriseHours * 60 * 60 + sunriseMins * 60;
+	let sunsetValue = sunsetHours * 60 * 60 + sunsetMins * 60;
 
 	//can remove if ESP32 can handle taking a sunriseValue > sunsetValue but currently, leaving a check to prevent this
 	if (sunriseValue > sunsetValue) {
@@ -177,7 +234,7 @@ const saveCustom = async (req, res) => {
 	}
 
 	//checking if time is > 24:00
-	if (sunriseValue > (24 * 60 * 60) || sunsetValue > (24 * 60 * 60)) {
+	if (sunriseValue > 24 * 60 * 60 || sunsetValue > 24 * 60 * 60) {
 		return res
 			.status(400)
 			.json({ error: "invalid input - value must be less than 24:00 in seconds" });
@@ -194,6 +251,8 @@ const saveCustom = async (req, res) => {
 module.exports = {
 	reset,
 	config,
+	loginESP32,
+	loginPageESP32,
 	dashboard,
 	save,
 	saveDuration,
