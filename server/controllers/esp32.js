@@ -73,7 +73,7 @@ const loginPageESP32 = async (req, res) => {
 	var session = req.session;
 
 	if (session.userid) {
-		res.sendFile(path.resolve(__dirname, "../public/esp32.html"));
+		res.sendFile(path.resolve(__dirname, "../public/esp32LoggedIn.html"));
 	} else {
 	  	res.sendFile(path.resolve(__dirname, "../public/loginEsp32.html"));
 	}
@@ -100,7 +100,13 @@ const loginESP32 = async (req, res) => {
 };
 
 const dashboard = async (req, res) => {
-	res.sendFile(path.resolve(__dirname, "../public/esp32.html"));
+	var session = req.session;
+
+	if (session.userid) {
+		res.sendFile(path.resolve(__dirname, "../public/esp32LoggedIn.html"));
+	} else {
+		res.sendFile(path.resolve(__dirname, "../public/esp32.html"));
+	}
 };
 
 const save = async (req, res) => {
